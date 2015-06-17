@@ -1,7 +1,7 @@
 <header class="site-header px2 px-responsive">
   <div class="mt2 wrap">
     <div class="measure">
-      <div><a href="{{ site.url }}"><img src="{{ site.baseurl }}/images/logo.png" alt="logo"/></a></div>
+      <div><a href="{{ site.url }}"><img src="images/logo.png" alt="logo"/></a></div>
       <nav class="site-nav right">
         {% include navigation.html %}
       </nav>
