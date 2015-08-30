@@ -31,7 +31,7 @@ To get a feeling of how scrapy works there is an online tutorial plus installati
 
 Before starting the development of the spider it is necessary to define the data that we want to scrape. This is done by modifying the *items.py* file. We create [Items](http://doc.scrapy.org/en/0.24/topics/items.html) which are described as containers that will be loaded with the scraped data. Inside items.py file a class named *UltraclarityItem* has been automatically created that takes a scrapy item object as a parameter and inside that class we define some atrributes (according to what we need to download from the website) as shown below:
  
-{% highlight ruby %}
+{% highlight python %}
   class UltraclarityItem(scrapy.Item):
     title = scrapy.Field()
     url = scrapy.Field()
@@ -46,17 +46,17 @@ Next, we have to declare our Spider. Spiders are user-written classes that must 
 In our project we used CrawlSpider which is the most common spider used to crawl regular websites. Inside spiders folder we create a new file named ultraclarityspider.
 As we will developing the spider, packages need to be imported to avoid errors when compiling the code. For example to be able to make http requests from scrapy.http we need to import Request. These packages are written in ultraclarityspider and are shown below:
 
-{% highlight ruby %}
+{% highlight python %}
 import scrapy
 from scrapy.spiders 	import CrawlSpider
-from scrapy.selector    	import Selector 
-from ultraclarity.items 	import UltraclarityItem
+from scrapy.selector    import Selector 
+from ultraclarity.items import UltraclarityItem
 from scrapy.http    	import Request
 {% endhighlight %}
 
 We are now ready to begin developing the spider. Firstly, we create a class named *UltraclaritySpider* which subclasses the CrawlSpider and afterwards we specify its mandatory fields: a *name* that we will use to call from the terminal, an optional list named *Allowed_domains* which is a list of domains where the spider will begin to crawl from, when no particular URLs are specified and finally a list of URLs where the Spider will begin to crawl from. The code below illustrates the above description.
 
-{% highlight ruby %}
+{% highlight python %}
 class UltraclaritySpider(CrawlSpider):
     name = "ultraclarity"
     allowed_domains = ["yperdiavgeia.gr"]
@@ -71,7 +71,7 @@ In order to define *start_urls* we need to know which years of publications of l
 
 Inside *UltraclaritySpider* class we also implement three methods to help us scrape data. The first one, *parse* is a basic method, a default callback used by Scrapy to process downloaded responses. 
 
-{% highlight ruby %}
+{% highlight python %}
 def parse(self, response):
     sel = Selector(response)
     num_pages = pages(int(sel.xpath('//div[@id="total-results"]/text()').extract()[0]))
@@ -83,12 +83,12 @@ def parse(self, response):
 
 The above code shows that we have used a mechanism called [Selector](http://doc.scrapy.org/en/0.24/topics/selectors.html) to select which data we are going to extract. Selectors select certain parts of the HTML document specified either by [XPath](http://www.w3.org/TR/xpath/) or CSS expressions. XPath (which we are using) is a language for selecting nodes in XML and HTML documents. In this method we use selectors to deal with pagination. First, we follow the path to the element that contains the total number of results according to our search, then we use a *pages* function that divides this number with the number of results per page (UltraCl@rity Service by default uses ten documents per page) and returns the number of pages. As mentioned above we can use an extra *page* parameter to construct the urls dynamically. Multiple requests are then processed with this tecnhique and for such requests we implement a callback function named "parse_objects". 
 
-Now that we have created all requests for every page, we need to fill the items that we created in UltraclarityItem class. Spiders are expected to return their scraped data inside *item* objects and by taking advantage of selectors and following the tree structure of every page we can easily spot the information we need. In our case, documents are stored in divs having class *law* or *law alt* so for every path we follow we call an instance of the UltraclarityItem and we fill the item title (following the same pattern to all files e.g *journal-of-government-issue-num\_issue-type\_year-of-publication*) and the URL that points to the PDF file. As this URL points directly to the law document, we just need to perform requests based on these URLs, define a callback function named *parse_urls* and just pass the item as metadata so that we can use it in the callback function:
+Now that we have created all requests for every page, we need to fill the items that we created in UltraclarityItem class. Spiders are expected to return their scraped data inside *item* objects and by taking advantage of selectors and following the tree structure of every page we can easily spot the information we need. In our case, documents are stored in divs having class *law* or *law alt* so for every path we follow we call an instance of the UltraclarityItem and we fill the item title (following the same pattern to all files e.g *government-gazzette-issue-num\_issue-type\_year-of-publication*) and the URL that points to the PDF file. As this URL points directly to the law document, we just need to perform requests based on these URLs, define a callback function named *parse_urls* and just pass the item as metadata so that we can use it in the callback function:
 
-{% highlight ruby %}
+{% highlight python %}
 def parse_objects(self, response):
     sel = Selector(response)
-    paths = sel.xpath('//div[@class="law"] | //div[@class="law alt"]')	  
+    paths = sel.xpath('//div[@class="law"] | //div[@class="law alt"]')
     
     for paths in paths:
         item = UltraClarityItem()
@@ -102,7 +102,7 @@ def parse_objects(self, response):
 
 The last method of the class is used to store the file in the item's description.
 
-{% highlight ruby %}
+{% highlight python %}
 def parse_urls(self,response):
     item = response.meta['item']
     item['desc'] = response.body
@@ -111,12 +111,12 @@ def parse_urls(self,response):
 
 Finally, in the last step we need to store every item that contains information locally to our computer. After an item has been scraped by a spider, it is sent to the item pipeline which processes it through several components that are executed sequentially. Scrapy provides a placeholder file when you create a project in *project_name/project_name/pipelines.py* that one can modify. Our pipeline is a class (*UltraclarityPipeline*) that implements a simple method named *process_item* which stores every item in a file based on the item's title. All we need to do is just open files and store in them the text. For better organisation, we store files in folders based on their year of publication.
 
-{% highlight ruby %}
+{% highlight python %}
 from ultraclarity.items import UltraclarityItem
 import os
 
 class UltraclarityPipeline(object):
-    def process_item(self, item, spider):  
+    def process_item(self, item, spider):
         if not os.path.exists('laws/'+item['title'].split('_')[2]+'/'):
             os.makedirs('laws/'+item['title'].split('_')[2]+'/')  
         
