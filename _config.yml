@@ -3,7 +3,7 @@ title:       OpenLaws
 email:       kplessas@ceid.upatras.gr
 author:      Kostas Plessas
 description: "A Project Opening Greek Legislation to Citizens"
-baseurl:     "http://www.openlaws.gr"
+baseurl:     ""
 url:         "http://www.openlaws.gr"
 
 # Google analytics
