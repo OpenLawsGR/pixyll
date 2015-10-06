@@ -74,7 +74,7 @@ Inside *UltraclaritySpider* class we also implement three methods to help us scr
 {% highlight python %}
 def parse(self, response):
     sel = Selector(response)
-    num_pages = pages(int(sel.xpath('//div[@id="total-results"]/text()').extract()[0]))
+    num_pages = pages(int(sel.xpath('//span[@id="total-results"]/text()').extract()[0]))
     
     for n in range(1, num_pages + 1):
         request = Request(response.url + "/page:" + str(n), callback=self.parse_objects)
@@ -127,3 +127,4 @@ class UltraclarityPipeline(object):
 {% endhighlight %}
 
 This is it! Just calling our spider's name from the terminal will do the job!
+The source code is available in [Github](https://github.com/OpenLawsGR/ultraclarity-crawler)
